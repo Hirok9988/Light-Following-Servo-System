@@ -1,0 +1,76 @@
+#include <Servo.h>
+
+Servo myServo;
+
+// LDR pins
+int ldrLeft = A0;
+int ldrRight = A1;
+
+// Output pins
+int redLED = 4;
+int yellowLED = 5;
+int greenLED = 6;
+int buzzer = 7;
+int servoPin = 9;
+
+// Servo position
+int pos = 90;
+int lastPos = 90;
+
+void setup() {
+  myServo.attach(servoPin);
+  myServo.write(pos);
+
+  pinMode(redLED, OUTPUT);
+  pinMode(yellowLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+
+  Serial.begin(9600);
+}
+
+void loop() {
+  int leftValue = analogRead(ldrLeft);
+  int rightValue = analogRead(ldrRight);
+
+  int diff = leftValue - rightValue;
+
+  // Save old position
+  lastPos = pos;
+
+  // Servo movement
+  if (diff > 50) {
+    pos += 1;
+  }
+  else if (diff < -50) {
+    pos -= 1;
+  }
+
+  pos = constrain(pos, 0, 180);
+  myServo.write(pos);
+
+  // LED & Buzzer logic
+  if (leftValue < 200 && rightValue < 200) {
+    // No light
+    digitalWrite(redLED, HIGH);
+    digitalWrite(yellowLED, LOW);
+    digitalWrite(greenLED, LOW);
+    digitalWrite(buzzer, LOW);
+  }
+  else if (pos != lastPos) {
+    // Servo tracking
+    digitalWrite(redLED, LOW);
+    digitalWrite(yellowLED, HIGH);
+    digitalWrite(greenLED, LOW);
+    digitalWrite(buzzer, HIGH);
+  }
+  else {
+    // Light present, servo stable
+    digitalWrite(redLED, LOW);
+    digitalWrite(yellowLED, LOW);
+    digitalWrite(greenLED, HIGH);
+    digitalWrite(buzzer, LOW);
+  }
+
+  delay(20);
+}
